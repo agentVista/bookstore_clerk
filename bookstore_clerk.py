@@ -83,8 +83,20 @@ class BookstoreDB:
         # Get book details from user
         try:
             book_id = int(input("Enter book ID: "))
-            title = input("Enter the book title: ")
-            author = input("Enter author name: ")
+            # Input validation for title
+            while True:
+                title = input("Enter the book title: ").strip()
+                if title:
+                    break
+                print("Error: Title cannot be empty. Please enter a title.")
+            
+            # Input validation for author
+            while True:
+                author = input("Enter author name: ").strip()
+                if author:
+                    break
+                print("Error: Author name cannot be empty. Please enter an author name.")
+                
             qty = int(input("Enter quantity: "))
             
             # Check if ID already exists
@@ -134,8 +146,26 @@ class BookstoreDB:
             
             # Get updated information
             print("\nEnter new details (press Enter to keep current value):")
-            new_title = input(f"New title [{book[1]}]: ") or book[1]
-            new_author = input(f"New author [{book[2]}]: ") or book[2]
+            
+            # Input validation for title
+            while True:
+                new_title = input(f"New title [{book[1]}]: ").strip()
+                if not new_title:  # If user pressed Enter
+                    new_title = book[1]
+                    break
+                if new_title:  # If user entered something
+                    break
+                print("Error: Title cannot be empty. Please enter a title or press Enter to keep current.")
+            
+            # Input validation for author
+            while True:
+                new_author = input(f"New author [{book[2]}]: ").strip()
+                if not new_author:  # If user pressed Enter
+                    new_author = book[2]
+                    break
+                if new_author:  # If user entered something
+                    break
+                print("Error: Author name cannot be empty. Please enter an author name or press Enter to keep current.")
             
             new_qty_input = input(f"New quantity [{book[3]}]: ")
             new_qty = int(new_qty_input) if new_qty_input else book[3]
@@ -200,12 +230,14 @@ class BookstoreDB:
         print("1. Search by Title")
         print("2. Search by Author")
         print("3. Search by Title or Author")
-        print("4. Search for Low Stock (Qty < 5)")
+        print("4. Search by ID")
+        print("5. Search by Quantity Range")
+        print("6. Search for Low Stock (Qty < 5)")
         
         try:
 
             # Get search option from user
-            search_option = input("\nSelect search option (1-4): ").strip()
+            search_option = input("\nSelect search option (1-6): ").strip()
             
             if search_option == '1':
                 search_term = input("Enter title to search for: ").strip()
@@ -238,6 +270,31 @@ class BookstoreDB:
                 )
                 
             elif search_option == '4':
+                # Search by ID
+                try:
+                    search_id = int(input("Enter book ID to search for: "))
+                    self.cursor.execute(
+                        "SELECT * FROM book WHERE id = ?",
+                        (search_id,)
+                    )
+                except ValueError:
+                    print("Error: Please enter a valid numeric ID.")
+                    return False
+                
+            elif search_option == '5':
+                # Search by Quantity Range
+                try:
+                    min_qty = int(input("Enter minimum quantity: "))
+                    max_qty = int(input("Enter maximum quantity: "))
+                    self.cursor.execute(
+                        "SELECT * FROM book WHERE qty BETWEEN ? AND ? ORDER BY qty ASC",
+                        (min_qty, max_qty)
+                    )
+                except ValueError:
+                    print("Error: Please enter valid numeric values for quantity range.")
+                    return False
+                
+            elif search_option == '6':
                 # Search for low stock (quantity less than 5)
                 self.cursor.execute(
                     "SELECT * FROM book WHERE qty < 5 ORDER BY qty ASC"
